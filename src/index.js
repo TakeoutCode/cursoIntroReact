@@ -1,15 +1,14 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './styles/index.css';
+import { createPortal } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import App from './App';
+import './styles/index.css';
 
+// Root principal
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('root')
-);
-
-ReactDOM.createPortal(
-  <App />,
-  document.getElementById('modal')
-)
+// Portal
+const modalRoot = document.getElementById('modal');
+if (modalRoot) {
+  createPortal(<App />, modalRoot);
+}
