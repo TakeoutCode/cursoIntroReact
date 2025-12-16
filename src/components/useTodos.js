@@ -1,64 +1,55 @@
-import { useState } from 'react';
-import { useLocalStorage } from './useLocalStoraje';
+import { useMemo, useState } from 'react';
+import { useLocalStorage } from './useLocalStorage';
 
-
-function useTodos(props) {
-  const  {
-    item: todos, 
-    saveItem: saveTodos, 
-    loading, 
-    error
+const useTodos = () => {
+  const {
+    item: todos,
+    saveItem: saveTodos,
+    loading,
+    error,
   } = useLocalStorage('TODOS_V1', []);
-  
+
   const [searchValue, setSearchValue] = useState('');
   const [openModal, setOpenModal] = useState(false);
 
+  const completedTodos = useMemo(
+    () => todos.filter(todo => todo.completed).length,
+    [todos]
+  );
 
-  const completedTodos = todos.filter(todo => !!todo.completed).length;
   const totalTodos = todos.length;
 
-  let searchedTodos = [];
+  const searchedTodos = useMemo(() => {
+    if (searchValue.length === 0) return todos;
 
-  if (!searchValue.length >= 1) {
-    searchedTodos = todos;
-
-  } else {
-    searchedTodos = todos.filter(todo => {
-      const todoText = todo.text.toLowerCase();
-      const searchText = searchValue.toLowerCase();
-      return todoText.includes(searchText);
-
-    });
-
-  }
-
-  
-  
+    const searchText = searchValue.toLowerCase();
+    return todos.filter(todo =>
+      todo.text.toLowerCase().includes(searchText)
+    );
+  }, [todos, searchValue]);
 
   const addTodo = (text) => {
-    const newTodos = [...todos];
-    newTodos.push({
-      completed: false,
-      text,
-    });
-    saveTodos(newTodos)
-  }
-  
+    saveTodos([
+      ...todos,
+      { text, completed: false },
+    ]);
+  };
+
   const toggleCompleteTodos = (text) => {
-    const todoIndex = todos.findIndex(todo => todo.text === text);
-    const newTodos = [...todos];
-    newTodos[todoIndex].completed = !newTodos[todoIndex].completed;
-    saveTodos(newTodos);
+    saveTodos(
+      todos.map(todo =>
+        todo.text === text
+          ? { ...todo, completed: !todo.completed }
+          : todo
+      )
+    );
   };
 
   const deleteTodos = (text) => {
-    const todoIndex = todos.findIndex(todo => todo.text === text);
-    const newTodos = [...todos];
-    newTodos.splice(todoIndex, 1);
-    saveTodos(newTodos);
+    saveTodos(
+      todos.filter(todo => todo.text !== text)
+    );
   };
-
-
 
   return {
     loading,
@@ -73,7 +64,7 @@ function useTodos(props) {
     deleteTodos,
     openModal,
     setOpenModal,
-  }
-}
+  };
+};
 
 export { useTodos };
